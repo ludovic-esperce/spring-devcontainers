@@ -36,7 +36,7 @@ Une fois ce conteneur établi, l'IDE est en capacité de s'y connecter via un mo
 La création d'un "dev container" est rendue possible grâce à l'utilisation d'un fichier de configuration `.json`.
 
 L'approche traditionnelle consiste à positionner ce fichier dans un dossier situé à la racine du projet :
-```
+```js
 projet
 ├───.devcontainer // répertoire contenant le fichier de configuration
 │   └───devcontainer.json
@@ -47,7 +47,7 @@ projet
 Ce fichier de configuration est propre à l'outil "dev container".
 
 Voici un premier exemple de fichier de configuration pour un conteneur Java :
-```
+```json
 // README at: https://github.com/devcontainers/templates/tree/main/src/java
 {
     // Nom du "dev container", champ libre
