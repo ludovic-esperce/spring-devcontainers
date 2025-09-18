@@ -1,46 +1,90 @@
-# Modèle MVC en Java
+# Mise en place de "devcontainers"
 
-Compétences abordées :
-- programmation de controllers pour répondre à des requêtes http (avec rendu de vue + Rest API)
-- prise en main de la création de vues avec template Thymeleaf
+## Objectifs et intérêt
 
-## Framework Spring 
+Ce projet a pour objectif de mettre en avant la mise en place d'un environnement de développement basé sur des  "devcontainers" pour la stack technique suivante :
+- une application web basée sur Spring boot (code serveur) ;
+- une base de données relationnelle PostgreSQL.
 
-Ce découverte est basée sur le framework [Spring](https://spring.io/) et intègre les dépendances [Spring Boot](https://spring.io/projects/spring-boot).
+L'approche en "devcontainer" a de multiples avantages :
+- mutualisation des environnement de développement pour le travail en équipe :
+  - les fichiers de configuration des conteneurs pourront être partagé via un dépôt Git et chaque membre d'une équipe pourra bénéficier rapidemment du même environnement
+- création d'environnement isolés du système :
+  - la conteneurisation permet de d'isoler les outils de développement du système hôte. Ceci a pour avantage de ne pas intéférer avec les applications du système hôte (sandboxing).
+- facilitation du changement d'environnement :
+  - il sera, par exemple, plus facile de changer rapidemment de version en configurant le conteneur et non pas le système hôte
 
-Spring Boot est un outil qui accélère et simplifie le développement d'applications Web et de microservices avec Spring Framework grâce à trois fonctionnalités principales :
-- facilité de configuration (notammment grâce aux [dépendances "starter"](https://github.com/spring-projects/spring-boot/blob/main/spring-boot-project/spring-boot-starters/README.adoc), consultez également ce [très bon article](https://www.baeldung.com/spring-boot-starters))
-- les [mécanismes de configuration automatique](https://dev-mind.fr/blog/2022/spring_boot_starter_database_schema_initialization.html)
-- l'outil [Spring Initalizr](https://start.spring.io/) pour rapidemment créer un nouveau projet
-- l'outil de débogage [Actuator](https://www.jtips.info/Spring/Actuator)
+> [!IMPORTANT]
+> La présentation se base sur  une approche utilisant VSCode.
+>
+> De nombreuses ressources sont disponibles en ligne si vous utilisez d'autres IDE, le principe reste identique.
 
-En résumé, Spring avec l'outil Spring Boot permet de simplifier la mise en place et le débogage d'un projet, ce qui nous permet de nous concentrer sur le code métier.
+## Principe de base
 
-## Démarrer le projet
+Le principe de développement dans un "dev container" est de pouvoir utiliser un conteneur comme un environnement de travail pré-configuré.
 
-Le plugin `spring-boot-maven-plugin` ajouté au fichier `pom.xml` permet de bénéficier du "goal" `run`.
+Ce conteneur pourra contenir les outils de développement (par exemple le compilateur et l'outil de gestion de dépendance) et toutes applications nécessaire au lancement d'une application (par exemple un JRE).
 
-Extrait de fichier de configuration `pom.xml` intégrant le plugin en question :
-```xml
-<plugin>
-<groupId>org.springframework.boot</groupId>
-    <artifactId>spring-boot-maven-plugin</artifactId>
-</plugin>
+Le **système de volumes** de la conteneurisation est utilisé pour pouvoir retrouver les fichiers constitutifs d'un projet à l'intérieur du conteneur.
+
+Une fois ce conteneur établi, l'IDE est en capacité de s'y connecter via un module appelé "VSCode server" situé dans le conteneur de développement :
+
+![Fonctionnement de VSCode avec un "dev container"](img/architecture-containers.png)
+
+## Configuration de "dev containers"
+
+La création d'un "dev container" est rendue possible grâce à l'utilisation d'un fichier de configuration `.json`.
+
+L'approche traditionnelle consiste à positionner ce fichier dans un dossier situé à la racine du projet :
+```
+projet
+├───.devcontainer // répertoire contenant le fichier de configuration
+│   └───devcontainer.json
+├───src
+└───pom.xml // exemple basé sur un projet Maven avec "pom.xml"
 ```
 
-Ce "goal" est très pratique puisqu'il vous permet de démarrer un serveur Tomcat et de déployer l'application en cours de développement automatiquement.
+Ce fichier de configuration est propre à l'outil "dev container".
 
-En ligne de commande vous pourrez démarrer le serveur avec l'instruction suivante :
-```bash
-mvn spring-boot:run
+Voici un premier exemple de fichier de configuration pour un conteneur Java :
+```
+// README at: https://github.com/devcontainers/templates/tree/main/src/java
+{
+    // Nom du "dev container", champ libre
+    "name": "Java",
+    // Utilisation d'une image provenant d'un dépôt Microsoft.
+    // Il est aussi possible de créer une image adaptée en utilisant un fichier "Dockerfile" ou "docker-compose.yml"
+    // Ici, un conteneur spécifique à Java est utilisé (il contient les outils de compilation)
+    // Pour plus d'information sur ce conteneur veuillez consulter la documentation : https://hub.docker.com/r/microsoft/devcontainers-java
+    "image": "mcr.microsoft.com/devcontainers/java:21-bullseye",
+    // Ajout d'une liste de fonctionnalités à ajouter au conteneur
+    // Pour plus de détails : https://github.com/devcontainers/features/tree/main/src/java
+    "features": {
+          "ghcr.io/devcontainers/features/java:1": {
+                  "version": "none",
+                  "installMaven": "true",
+                  "mavenVersion": "3.9.10",
+                  "installGradle": "false"
+          }
+    }
+}
 ```
 
-A partir de votre IDE il vous suffira de cliquer sur "run" à partir des ordres maven.
-    
-## Marche à suivre
+Il sera possible d'intégrer un tel fichier à un projet existant.
 
-Vous allez réaliser l'exerice en suivant une démarche TDD :
-1. Complétez les TODO de façon à répondre aux attentes
-2. Testez dès que vous le pouvez (lancez les tests unitaires et faites des tests fonctionnels)
+> [!IMPORTANT]
+> Il n'est pas tout le temps évident de choisir les images de conteneur sur lesquelles se baser. L'exemple présenté utilise l'image "java:21-bullseye".
+> Pour en apprendre plus sur les différentes images utilisables il vous est fortement conseillé de lire l'article disponible [ici](https://medium.com/@faruk13/alpine-slim-bullseye-bookworm-noble-differences-in-docker-images-explained-d9aa6efa23ec)
+> A votre avis, quelle serait l'image la plus adaptée pour la mise en place d'un conteneur de production le plus optimisé en mémoire ?
 
-N'oubliez pas de poussez régulièrement votre travail !
+### Utilisation du client en console et/ou l'IDE
+
+"dev container" peut être vue comme une sur-couche de Docker permettant de manipuler facilement des conteneurs dédiés au développement.
+
+La manipulation de ces conteneurs peut être faite via deux approches :
+- utilisation de "devcontainer cli", le client en **console** ;
+- utilisation de l'interface de l'IDE.
+
+L'installation du client en console peut se faire en suivant la procédure disponible [ici](https://code.visualstudio.com/docs/devcontainers/devcontainer-cli).
+
+Pour une utilisation directement dans VSCode il est possible d'utiliser [cette extension](https://marketplace.visualstudio.com/items?itemName=ms-vscode-remote.remote-containers). Si vous installez l'extension vous n'aurez pas besoin d'installer l'outil en ligne de commande, il est intégré.
