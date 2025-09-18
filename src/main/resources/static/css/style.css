@@ -1,0 +1,10 @@
+/* Import de tous les autres CSS */
+@import "reset.css";
+@import "index.css";
+@import "notes.css";
+
+* {
+    font-family: 'Noto Sans HK', sans-serif;
+    font-size: 18px;
+    color: #373737;
+}
